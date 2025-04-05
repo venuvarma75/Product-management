@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management</title>
+    <style>
+        body {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2%;
+            padding: 2rem;
+        }
+        #form {
+            border: 1px solid black;
+            border-radius: 2rem;
+            padding: 2rem;
+            background-color: aquamarine;
+        }
+        button {
+            width: 29vh;
+            height: 6vh;
+            background-color: red;
+            color: white;
+            border-radius: 1rem;
+            border: none;
+            cursor: pointer;
+        }
+        div > div {
+            background-color: #a8f96a;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            width: 350px;
+            text-align: center;
+            margin-top: 10px;
+        }
+        h1 {
+            margin: 10px 0;
+            color: #f70909;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Add New Data Form -->
+    <form id="addForm" onsubmit="event.preventDefault(); post();">
+        <h1>Add New Data</h1>
+        <h4>Enter ID:</h4>
+        <input type="text" placeholder="Enter Product ID" id="inp1">
+        <h4>Enter Name:</h4>
+        <input type="text" placeholder="Enter Product Name" id="inp2">
+        <h4>Enter Price:</h4>
+        <input type="text" placeholder="Enter Product Price" id="inp3">
+        <h4>Enter Stock:</h4>
+        <input type="text" placeholder="Enter Product Stock" id="inp4"><br><br>
+        <button type="submit">Add Product</button>
+    </form>
+
+    <!-- Update Data Form -->
+    <form id="updateForm" onsubmit="event.preventDefault(); patch();">
+        <h1>Update Data</h1>
+        <h4>Enter ID:</h4>
+        <input type="text" placeholder="Enter Product ID" id="inp5">
+        <h4>Enter Name:</h4>
+        <input type="text" placeholder="Enter Product Name" id="inp6">
+        <h4>Enter Price:</h4>
+        <input type="text" placeholder="Enter Product Price" id="inp7">
+        <h4>Enter Stock:</h4>
+        <input type="text" placeholder="Enter Product Stock" id="inp8"><br><br>
+        <button type="submit">Update Data</button>
+    </form>
+
+    <!-- Delete Data Form -->
+    <form id="deleteForm" onsubmit="event.preventDefault(); delet();">
+        <h1>Delete Data</h1>
+        <input type="text" placeholder="Enter Product ID" id="inp9"><br><br>
+        <button type="submit">Delete Product</button>
+    </form>
+
+    <!-- Get Data Button -->
+    <button onclick="get()">Get Data</button>
+
+    <div id="dataContainer"></div>
+
+    <script>
+        async function get() {
+            try {
+                let response = await fetch("http://localhost:3000/data");
+                let data = await response.json();
+                console.log(data);
+
+                let container = document.getElementById("dataContainer");
+                container.innerHTML = "";
+                container.style.display = "grid";
+                container.style.gridTemplateColumns = "repeat(auto-fit, minmax(250px, 1fr))";
+
+                data.forEach((item) => {
+                    let div = document.createElement("div");
+                    div.innerHTML = `
+                        <h1>ID: ${item.id}</h1>
+                        <h2>Product: ${item.name}</h2>
+                        <h3>Price: ${item.price}</h3>
+                        <p>Stock: ${item.stock}</p>
+                    `;
+                    container.appendChild(div);
+                });
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        async function post() {
+            let inp1 = document.getElementById("inp1").value;
+            let inp2 = document.getElementById("inp2").value;
+            let inp3 = document.getElementById("inp3").value;
+            let inp4 = document.getElementById("inp4").value;
+
+            if (!inp1 || !inp2 || !inp3 || !inp4) {
+                alert("Please fill all fields.");
+                return;
+            }
+
+            let obj = { id: inp1, name: inp2, price: inp3, stock: inp4 };
+
+            try {
+                let response = await fetch(" http://localhost:3000/data", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(obj),
+                });
+
+                if (response.ok) {
+                    alert("Product added successfully!");
+                    get();
+                }
+            } catch (error) {
+                console.error("Error adding product:", error);
+            }
+        }
+
+        async function patch() {
+            let inp5 = document.getElementById("inp5").value;
+            let inp6 = document.getElementById("inp6").value;
+            let inp7 = document.getElementById("inp7").value;
+            let inp8 = document.getElementById("inp8").value;
+
+            if (!inp5) {
+                alert("Please enter an ID to update.");
+                return;
+            }
+
+            let obj = {};
+            if (inp6) obj.name = inp6;
+            if (inp7) obj.price = inp7;
+            if (inp8) obj.stock = inp8;
+
+            try {
+                let response = await fetch(`http://localhost:3000/data/${inp5}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(obj),
+                });
+
+                if (response.ok) {
+                    alert("Product updated successfully!");
+                    get();
+                }
+            } catch (error) {
+                console.error("Error updating product:", error);
+            }
+        }
+
+        async function delet() {
+            let inp9 = document.getElementById("inp9").value;
+
+            if (!inp9) {
+                alert("Please enter an ID to delete.");
+                return;
+            }
+
+            try {
+                let response = await fetch(`http://localhost:3000/data/${inp9}`, {
+                    method: "DELETE",
+                });
+
+                if (response.ok) {
+                    alert("Product deleted successfully!");
+                    get();
+                }
+            } catch (error) {
+                console.error("Error deleting product:", error);
+            }
+        }
+    </script>
+</body>
+</html>
